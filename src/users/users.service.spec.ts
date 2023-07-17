@@ -1,10 +1,10 @@
 import { UsersService } from './users.service';
-import { User } from './user.entity';
+import { User } from '@/models/user.entity';
+import { Role } from '@/models/roles.enum';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UsersFindOneOptions } from './interfaces/users-find-one-options.interface';
-import { Role } from './enums/roles.enum';
 
 const userMock = {
   id: 'test-uuid',
@@ -12,6 +12,7 @@ const userMock = {
   email: 'john@gmail.com',
   password: 'hashed-password',
   roles: [Role.User],
+  orders: [],
 };
 
 const userToCreateMock = {
@@ -44,6 +45,7 @@ describe('UsersService', () => {
               Promise.resolve({
                 id: 'test-uuid',
                 roles: [Role.User],
+                orders: [],
                 ...userData,
               }),
             ),
@@ -103,6 +105,7 @@ describe('UsersService', () => {
         id: expect.any(String),
         ...userToCreateMock,
         roles: [Role.User],
+        orders: [],
       });
     });
 
@@ -115,6 +118,7 @@ describe('UsersService', () => {
         id: expect.any(String),
         ...userToCreateMock,
         roles: [Role.User, Role.Admin],
+        orders: [],
       });
     });
   });

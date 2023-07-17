@@ -3,7 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { RegisterDTO } from './dto/register.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { Role } from '../users/enums/roles.enum';
+import { Role } from '@/models/roles.enum';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -24,6 +24,7 @@ describe('AuthController', () => {
                   id: 'uuid-user',
                   roles: [Role.User],
                   password: 'hashed-password',
+                  orders: [],
                 }),
               ),
             login: jest.fn(),
