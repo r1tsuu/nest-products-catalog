@@ -2,15 +2,13 @@ import {
   IsArray,
   IsEmail,
   IsEnum,
-  IsIn,
   IsNotEmpty,
   IsString,
-  IsStrongPassword,
   Length,
   ValidateNested,
 } from 'class-validator';
-import { Role } from '../enums/roles.enum';
-import { Exclude } from 'class-transformer';
+
+import { Role } from '@/models/role.enum';
 
 export class CreateUserDTO {
   @IsString()

@@ -1,24 +1,26 @@
+import { Test } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { randUuid } from '@ngneat/falso';
+import * as request from 'supertest';
+
 import { Order } from '@/models/order.entity';
 import { Product } from '@/models/product.entity';
 import { User } from '@/models/user.entity';
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import * as request from 'supertest';
-import { Auth, getAuth } from './__utils__/auth';
-import { Test } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
+
 import { AuthModule } from '@/auth/auth.module';
 import { ProductsModule } from '@/products/products.module';
 import { OrdersModule } from '@/orders/orders.module';
-import { dbModule } from './__utils__/db';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { bootstrap } from './__utils__/bootstrap';
 import { Role } from '@/models/role.enum';
+
+import { dbModule } from './__utils__/db';
+import { bootstrap } from './__utils__/bootstrap';
 import { randProductsToSave } from './__utils__/product';
 import { randUserToSave } from './__utils__/user';
 import { mapOrders } from './__utils__/order';
-import { use } from 'passport';
-import { randUuid } from '@ngneat/falso';
+import { Auth, getAuth } from './__utils__/auth';
 
 describe('OrdersModule (e2e)', () => {
   let app: INestApplication;
