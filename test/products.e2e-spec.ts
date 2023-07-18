@@ -11,7 +11,6 @@ import { AuthModule } from '@/auth/auth.module';
 
 import { User } from '@/models/user.entity';
 import { Role } from '@/models/role.enum';
-import { Order } from '@/models/order.entity';
 import { Product } from '@/models/product.entity';
 
 import { dbModule } from './__utils__/db';

@@ -11,3 +11,5 @@ Unit npm run test ![unit-tests](https://i.imgur.com/SWwe1qo.png)
 
 E2E npm run test:e2e
 ![e2e](https://i.imgur.com/OzBWEzP.png)
+
+Swagger: /api
