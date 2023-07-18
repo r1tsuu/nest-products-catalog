@@ -1,67 +1,31 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  ClassSerializerInterceptor,
-  HttpStatus,
-  INestApplication,
-  Logger,
-  ValidationPipe,
-} from '@nestjs/common';
+import { HttpStatus, INestApplication, Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-
-import { v4 } from 'uuid';
-import { ProductsModule } from '../src/app/products/products.module';
 import { ConfigModule } from '@nestjs/config';
-import * as request from 'supertest';
-import { Reflector } from '@nestjs/core';
-import { User } from '../src/app/users/user.entity';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { Role } from '../src/app/users/enums/roles.enum';
-import { Product } from '../src/app/products/product.entity';
+import { randNumber, randText, randUrl, randUuid } from '@ngneat/falso';
+import * as request from 'supertest';
 
-import { AuthModule } from '../src/app/auth/auth.module';
-import { dbModule } from './db';
+import { ProductsModule } from '@/products/products.module';
+import { AuthModule } from '@/auth/auth.module';
 
-const mockUser = {
-  username: 'username',
-  email: 'test@email.com',
-  password: 'Password123',
-};
+import { User } from '@/models/user.entity';
+import { Role } from '@/models/role.enum';
+import { Order } from '@/models/order.entity';
+import { Product } from '@/models/product.entity';
 
-const mockAdmin = {
-  username: 'admin22',
-  email: 'admin@email.com',
-  password: 'admin-password',
-};
-
-const mockProducts = [
-  {
-    title: 'Iphone 3',
-    photo: 'https://example.com/photo.jpg',
-    price: 1000,
-    slug: 'iphone-3',
-  },
-  {
-    title: 'Samsung 2',
-    photo: 'https://example.com/photo.jpg',
-    price: 1200,
-    slug: 'samsung-2',
-  },
-];
-
-const mockProduct = { ...mockProducts[0] };
+import { dbModule } from './__utils__/db';
+import { Auth, getAuth } from './__utils__/auth';
+import { randProductToSave, randProductsToSave } from './__utils__/product';
+import { bootstrap } from './__utils__/bootstrap';
 
 describe('ProductModule (e2e)', () => {
   let app: INestApplication;
   let usersRepo: Repository<User>;
 
   let productsRepo: Repository<Product>;
-  let accessTokenUser: string;
-  let accessTokenAdmin: string;
 
-  type Auth = [string, { type: 'bearer' }];
-  let authUser: Auth;
-  let authAdmin: Auth;
+  let admin: Auth;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -69,7 +33,7 @@ describe('ProductModule (e2e)', () => {
         ConfigModule.forRoot(),
         AuthModule,
         ProductsModule,
-        dbModule('products', User, Product),
+        dbModule('products'),
       ],
     }).compile();
 
@@ -77,65 +41,16 @@ describe('ProductModule (e2e)', () => {
     usersRepo = moduleRef.get(getRepositoryToken(User));
     productsRepo = moduleRef.get(getRepositoryToken(Product));
 
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-      }),
-    );
-
-    app.useGlobalInterceptors(
-      new ClassSerializerInterceptor(app.get(Reflector)),
-    );
-
-    await app.init();
+    await bootstrap(app);
 
     app.useLogger(new Logger());
   });
 
   beforeEach(async () => {
-    await usersRepo.clear();
-    await productsRepo.clear();
+    await usersRepo.delete({});
+    await productsRepo.delete({});
 
-    const passwordUser = await bcrypt.hash(mockUser.password, 10);
-    const passwordAdmin = await bcrypt.hash(mockAdmin.password, 10);
-
-    await usersRepo.save({
-      ...mockUser,
-      password: passwordUser,
-      roles: [Role.User],
-    });
-
-    await usersRepo.save({
-      ...mockAdmin,
-      password: passwordAdmin,
-      roles: [Role.User, Role.Admin],
-    });
-
-    const responseUser = await request(app.getHttpServer())
-      .post('/auth/sign-in')
-      .send({
-        email: mockUser.email,
-        password: mockUser.password,
-      })
-      .expect(200)
-      .expect((res) =>
-        expect(res.body).toEqual({ access_token: expect.any(String) }),
-      );
-
-    accessTokenUser = responseUser.body.access_token;
-
-    authUser = [accessTokenUser, { type: 'bearer' }];
-    const responseAdmin = await request(app.getHttpServer())
-      .post('/auth/sign-in')
-      .send({ email: mockAdmin.email, password: mockAdmin.password })
-      .expect(200)
-      .expect((res) =>
-        expect(res.body).toEqual({ access_token: expect.any(String) }),
-      );
-
-    accessTokenAdmin = responseAdmin.body.access_token;
-
-    authAdmin = [accessTokenAdmin, { type: 'bearer' }];
+    admin = await getAuth(usersRepo, app, [Role.User, Role.Admin]);
   });
 
   afterAll(async () => {
@@ -148,7 +63,9 @@ describe('ProductModule (e2e)', () => {
 
   describe('GET /product', () => {
     it('Should return all products', async () => {
-      const products = await productsRepo.save(mockProducts);
+      const productsData = randProductsToSave(10);
+      const products = await productsRepo.save(productsData);
+
       await request(app.getHttpServer())
         .get('/products')
         .expect(200)
@@ -158,24 +75,30 @@ describe('ProductModule (e2e)', () => {
 
   describe('GET /products/id/:id', () => {
     it('Should return a product by id', async () => {
-      const productData = await productsRepo.save(mockProduct);
+      const productData = randProductToSave();
+      const product = await productsRepo.save(productData);
+
       await request(app.getHttpServer())
-        .get(`/products/id/${productData.id}`)
-        .expect((res) => expect(res.body).toEqual(productData));
+        .get(`/products/id/${product.id}`)
+        .expect((res) => expect(res.body).toEqual(product));
     });
   });
 
   describe('GET /products/slug/:slug', () => {
     it('Should return a product by slug', async () => {
-      const slug = 'test-slug';
+      const slug = randText();
       const product = {
-        title: 'Galaxy S1',
-        price: 500,
-        photo: 'photo',
+        ...randProductToSave(),
         slug,
       };
+      const productsData = [
+        ...randProductsToSave(4),
+        product,
+        ...randProductsToSave(9),
+      ];
 
-      await productsRepo.save([...mockProducts, product]);
+      await productsRepo.save(productsData);
+
       await request(app.getHttpServer())
         .get(`/products/slug/${slug}`)
         .expect(200)
@@ -187,29 +110,33 @@ describe('ProductModule (e2e)', () => {
 
   describe('POST /products Auth Admin', () => {
     it('Should create a product ', async () => {
+      const product = randProductToSave();
+
       await request(app.getHttpServer())
         .post('/products')
-        .auth(...authAdmin)
-        .send(mockProduct)
+        .auth(...admin.auth)
+        .send(product)
         .expect(201)
         .expect((res) =>
-          expect(res.body).toEqual({ ...mockProduct, id: expect.any(String) }),
+          expect(res.body).toEqual({ ...product, id: expect.any(String) }),
         );
     });
+
     it('Should create a product with generated slug', async () => {
-      const mockProductSend = {
+      const product = {
         title: 'some Title test',
-        price: 300,
-        photo: 'https://example.com/photo.png',
+        price: randNumber(),
+        photo: randUrl(),
       };
+
       await request(app.getHttpServer())
         .post('/products')
-        .auth(...authAdmin)
-        .send(mockProductSend)
+        .auth(...admin.auth)
+        .send(product)
         .expect(201)
         .expect((res) =>
           expect(res.body).toEqual({
-            ...mockProductSend,
+            ...product,
             slug: 'some-Title-test',
             id: expect.any(String),
           }),
@@ -219,41 +146,38 @@ describe('ProductModule (e2e)', () => {
 
   describe('PUT /products/:id Auth Admin', () => {
     it('Should update a product', async () => {
-      const product = await productsRepo.save({
-        title: 'some Title test',
-        price: 300,
-        photo: 'https://example.com/photo.png',
-        slug: 'some-slug',
-      });
+      const productToSave = randProductToSave();
+      const product = await productsRepo.save(productToSave);
+      const updatedFields = {
+        price: randNumber(),
+        photo: randUrl(),
+      };
 
       await request(app.getHttpServer())
         .put(`/products/${product.id}`)
-        .auth(...authAdmin)
-        .send({
-          price: 1000,
-          photo: 'new-photo',
-        })
+        .auth(...admin.auth)
+        .send(updatedFields)
         .expect(200)
         .expect((res) =>
           expect(res.body).toEqual({
             ...product,
-            price: 1000,
-            photo: 'new-photo',
+            ...updatedFields,
           }),
         );
     });
+
     it('Should update a product and regenerate slug', async () => {
+      const productData = randProductToSave();
       const product = await productsRepo.save({
+        ...productData,
         title: 'some Title test',
-        price: 300,
-        photo: 'https://example.com/photo.png',
         // generated by title
         slug: 'some-Title-test',
       });
 
       await request(app.getHttpServer())
         .put(`/products/${product.id}`)
-        .auth(...authAdmin)
+        .auth(...admin.auth)
         .send({
           title: 'new title updated',
         })
@@ -268,34 +192,35 @@ describe('ProductModule (e2e)', () => {
     });
 
     it('Should update a product without regenerating slug', async () => {
+      const productData = randProductToSave();
       const product = await productsRepo.save({
+        ...productData,
         title: 'some Title test',
-        price: 300,
-        photo: 'https://example.com/photo.png',
         slug: 'not-generated-slug',
       });
+      const title = randText();
 
       await request(app.getHttpServer())
         .put(`/products/${product.id}`)
-        .auth(...authAdmin)
+        .auth(...admin.auth)
         .send({
-          title: 'new title updated',
+          title,
         })
         .expect(200)
         .expect((res) =>
           expect(res.body).toEqual({
             ...product,
-            title: 'new title updated',
+            title,
           }),
         );
     });
 
     it('Should not update a not existing product', async () => {
       await request(app.getHttpServer())
-        .put(`/products/${v4()}`)
-        .auth(...authAdmin)
+        .put(`/products/${randUuid()}`)
+        .auth(...admin.auth)
         .send({
-          title: 'new title updated',
+          title: randText(),
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect((res) =>
@@ -308,22 +233,24 @@ describe('ProductModule (e2e)', () => {
 
   describe('DELETE /products/:id Auth Admin', () => {
     it('Should delete a product by id ', async () => {
-      const product = await productsRepo.save(mockProduct);
+      const productData = randProductToSave();
+      const product = await productsRepo.save(productData);
 
       await request(app.getHttpServer())
         .delete(`/products/${product.id}`)
-        .auth(...authAdmin)
+        .auth(...admin.auth)
         .expect(200)
         .expect((res) => expect(res.body).toEqual({ deleted: true }));
     });
 
     it('Should not delete a product by id because of db error', async () => {
-      const product = await productsRepo.save(mockProduct);
+      const productData = randProductToSave();
+      const product = await productsRepo.save(productData);
       jest.spyOn(productsRepo, 'delete').mockRejectedValue(new Error());
 
       await request(app.getHttpServer())
         .delete(`/products/${product.id}`)
-        .auth(...authAdmin)
+        .auth(...admin.auth)
         .expect(200)
         .expect((res) => expect(res.body).toEqual({ deleted: false }));
     });
