@@ -7,7 +7,7 @@ Users also can cancel their orders and admins as well.
 
 Stack: Nest.js, TypeORM, PostgreSQL.
 
-Unit ![unit-tests](https://i.imgur.com/SWwe1qo.png)
+Unit npm run test ![unit-tests](https://i.imgur.com/SWwe1qo.png)
 
-E2E
+E2E npm run test:e2e
 ![e2e](https://i.imgur.com/OzBWEzP.png)
