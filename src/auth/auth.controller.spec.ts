@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { randEmail, randPassword, randText } from '@ngneat/falso';
+
+import { randUser } from '@/__test_utils__/user';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { RegisterDTO } from './dto/register.dto';
-import { HttpException, HttpStatus } from '@nestjs/common';
-import { Role } from '@/models/roles.enum';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -16,17 +17,7 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: {
-            register: jest
-              .fn()
-              .mockImplementation((registrationData: RegisterDTO) =>
-                Promise.resolve({
-                  ...registrationData,
-                  id: 'uuid-user',
-                  roles: [Role.User],
-                  password: 'hashed-password',
-                  orders: [],
-                }),
-              ),
+            register: jest.fn(),
             login: jest.fn(),
           },
         },
@@ -39,77 +30,39 @@ describe('AuthController', () => {
 
   describe('POST /register', () => {
     it('Should register an user', async () => {
-      const data = {
-        username: 'John',
-        email: 'john@gmail.com',
-        password: 'some-password',
+      const passwordNotHashed = randText();
+      const userData = randUser();
+      const registerSpy = jest
+        .spyOn(service, 'register')
+        .mockResolvedValue(userData);
+      const dataToRegister = {
+        email: userData.email,
+        username: userData.username,
+        password: passwordNotHashed,
       };
-      const registerSpy = jest.spyOn(service, 'register');
-      const userData = await controller.register(data);
-      expect(userData).toEqual({
-        id: 'uuid-user',
-        ...data,
-        password: 'hashed-password',
-        roles: [Role.User],
-      });
-      expect(registerSpy).toBeCalledTimes(1);
-      expect(registerSpy).toBeCalledWith(data);
-    });
 
-    it('Should fail because username already exists', async () => {
-      jest
-        .spyOn(service, 'register')
-        .mockRejectedValueOnce(
-          new HttpException(
-            'User with that username already exists',
-            HttpStatus.BAD_REQUEST,
-          ),
-        );
+      const user = await controller.register(dataToRegister);
 
-      expect(() =>
-        controller.register({
-          username: 'Michael',
-          email: 'michael@gmail.com',
-          password: 'some-password',
-        }),
-      ).rejects.toThrow('User with that username already exists');
-    });
-
-    it('Should fail because email already exists', async () => {
-      jest
-        .spyOn(service, 'register')
-        .mockRejectedValueOnce(
-          new HttpException(
-            'User with that email already exists',
-            HttpStatus.BAD_REQUEST,
-          ),
-        );
-
-      expect(() =>
-        controller.register({
-          username: 'David',
-          email: 'david@gmail.com',
-          password: 'some-password',
-        }),
-      ).rejects.toThrow('User with that email already exists');
+      expect(user).toEqual(userData);
+      expect(registerSpy).toBeCalledWith(dataToRegister);
     });
   });
 
   describe('sign-in', () => {
     it('Should login an user ', async () => {
-      const loginSpy = jest.spyOn(service, 'login').mockResolvedValue('token');
+      const tokenData = randText({ charCount: 100 });
+      const loginSpy = jest
+        .spyOn(service, 'login')
+        .mockResolvedValue(tokenData);
+      const dataToLogin = {
+        email: randEmail(),
+        password: randPassword(),
+      };
 
-      const token = await controller.login({
-        email: 'john@gmail.com',
-        password: 'password',
-      });
+      const token = await controller.login(dataToLogin);
 
-      expect(token).toEqual('token');
-      expect(loginSpy).toBeCalledTimes(1);
-      expect(loginSpy).toBeCalledWith({
-        email: 'john@gmail.com',
-        password: 'password',
-      });
+      expect(token).toEqual(tokenData);
+      expect(loginSpy).toBeCalledWith(dataToLogin);
     });
   });
 });

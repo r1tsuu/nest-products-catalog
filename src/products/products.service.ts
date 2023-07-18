@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+
+import { Product } from '@/models/product.entity';
+import { SlugGeneratorService } from '@/shared/slug-generator.service';
+
 import { CreateProductDTO } from './dto/create-product.dto';
-import { SlugGeneratorService } from '../shared/slug-generator.service';
 import { UpdateProductDTO } from './dto/update-product.dto';
 
 @Injectable()
@@ -16,6 +18,10 @@ export class ProductsService {
 
   async findAll() {
     return this.productsRepo.find();
+  }
+
+  async findByIds(ids: string[]) {
+    return this.productsRepo.findBy({ id: In(ids) });
   }
 
   async findOneById(id: string) {
@@ -35,8 +41,7 @@ export class ProductsService {
       ...productData,
       slug: productData.slug ?? this.slugGenerator.generate(productData.title),
     });
-    await this.productsRepo.save(product);
-    return product;
+    return this.productsRepo.save(product);
   }
 
   async update(id: string, dataToUpdate: UpdateProductDTO) {

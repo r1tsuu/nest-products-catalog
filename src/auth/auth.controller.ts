@@ -1,11 +1,11 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   HttpCode,
   Post,
   UseInterceptors,
 } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import { RegisterDTO } from './dto/register.dto';
 import { LoginTransformInterceptor } from './interceptors/login-transform.interceptor';

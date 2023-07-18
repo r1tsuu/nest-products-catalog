@@ -9,15 +9,17 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+
+import { HasRoles } from '@/auth/decorators/has-roles.decorator';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@/auth/guards/roles.guard';
+import { Role } from '@/models/role.enum';
+import { DeleteTransformInterceptor } from '@/shared/interceptors/delete-transform.interceptor';
+
 import { ProductsService } from './products.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { HasRoles } from '../auth/decorators/has-roles.decorator';
-import { Role } from '../users/enums/roles.enum';
-import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateProductDTO } from './dto/create-product.dto';
 import { UpdateProductDTO } from './dto/update-product.dto';
-import { DeleteTransformInterceptor } from '../shared/interceptors/delete-transform.interceptor';
-import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('products')
 export class ProductsController {

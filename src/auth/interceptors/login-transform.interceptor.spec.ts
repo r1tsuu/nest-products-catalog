@@ -1,7 +1,8 @@
 import { createMock } from '@golevelup/ts-jest';
-import { LoginTransformInterceptor } from './login-transform.interceptor';
 import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
+
+import { LoginTransformInterceptor } from './login-transform.interceptor';
 
 describe('LoginTransformInterceptor', () => {
   let interceptor: LoginTransformInterceptor;

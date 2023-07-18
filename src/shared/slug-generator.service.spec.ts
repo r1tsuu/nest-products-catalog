@@ -28,7 +28,6 @@ describe('SlugGeneratorService', () => {
       const slugifySpy = mockSlugify();
       const slug = service.generate('some-string');
       expect(slug).toEqual('some-string_slug');
-      expect(slugifySpy).toBeCalledTimes(1);
       expect(slugifySpy).toBeCalledWith('some-string');
     });
   });

@@ -16,7 +16,12 @@ export class UsersService {
   }
 
   async findOne(options?: UsersFindOneOptions) {
-    return this.userRepo.findOne({ where: options });
+    return this.userRepo.findOne({
+      where: options,
+      relations: {
+        orders: true,
+      },
+    });
   }
 
   async findOneByUsername(username: string) {
@@ -32,7 +37,6 @@ export class UsersService {
 
   async create(userData: CreateUserDTO) {
     const user = this.userRepo.create(userData);
-    await this.userRepo.save(user);
-    return user;
+    return this.userRepo.save(user);
   }
 }

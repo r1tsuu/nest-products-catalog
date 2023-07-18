@@ -1,28 +1,16 @@
-import { UsersService } from './users.service';
-import { User } from '@/models/user.entity';
-import { Role } from '@/models/roles.enum';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CreateUserDTO } from './dto/create-user.dto';
-import { UsersFindOneOptions } from './interfaces/users-find-one-options.interface';
+import { Repository } from 'typeorm';
 
-const userMock = {
-  id: 'test-uuid',
-  username: 'John',
-  email: 'john@gmail.com',
-  password: 'hashed-password',
-  roles: [Role.User],
-  orders: [],
-};
+import { User } from '@/models/user.entity';
+import { Role } from '@/models/role.enum';
+import { randUser } from '@/__test_utils__/user';
 
-const userToCreateMock = {
-  username: 'John',
-  email: 'john@gmail.com',
-  password: 'not-hashed-password',
-};
+import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let service: UsersService;
+  let repo: Repository<User>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -31,30 +19,16 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: {
-            findOne: jest
-              .fn()
-              .mockImplementation(
-                (userOptions: { where: UsersFindOneOptions }) =>
-                  Promise.resolve({
-                    ...userMock,
-                    ...userOptions.where,
-                  }),
-              ),
+            findOne: jest.fn(),
             save: jest.fn(),
-            create: jest.fn().mockImplementation((userData: CreateUserDTO) =>
-              Promise.resolve({
-                id: 'test-uuid',
-                roles: [Role.User],
-                orders: [],
-                ...userData,
-              }),
-            ),
+            create: jest.fn().mockImplementation((value) => value),
           },
         },
       ],
     }).compile();
 
     service = module.get(UsersService);
+    repo = module.get(getRepositoryToken(User));
   });
 
   it('Should be defined', () => {
@@ -63,63 +37,116 @@ describe('UsersService', () => {
 
   describe('findOne', () => {
     it('Should find a user', async () => {
+      const userData = randUser();
+      const findOneSpy = jest
+        .spyOn(repo, 'findOne')
+        .mockResolvedValue(userData);
+
       const user = await service.findOne();
-      expect(user).toEqual(userMock);
+
+      expect(user).toEqual(userData);
+      expect(findOneSpy).toBeCalledTimes(1);
+      expect(findOneSpy).toBeCalledWith({
+        relations: { orders: true },
+      });
+    });
+
+    it('Should find a user by provided options', async () => {
+      const userData = randUser();
+      const findOneSpy = jest
+        .spyOn(repo, 'findOne')
+        .mockResolvedValue(userData);
+      const { email, roles } = userData;
+      const options = { email, roles };
+
+      const user = await service.findOne(options);
+
+      expect(user).toEqual(userData);
+      expect(findOneSpy).toBeCalledWith({
+        where: options,
+        relations: { orders: true },
+      });
     });
   });
 
   describe('findOneByUsername', () => {
     it('Should find a user by username', async () => {
-      const user = await service.findOneByUsername('Michael');
-      expect(user).toEqual({
-        ...userMock,
-        username: 'Michael',
-      });
+      const userData = randUser();
+      const findOneSpy = jest
+        .spyOn(service, 'findOne')
+        .mockResolvedValue(userData);
+      const { username } = userData;
+
+      const user = await service.findOneByUsername(username);
+
+      expect(user).toEqual(userData);
+      expect(findOneSpy).toBeCalledWith({ username });
     });
   });
 
   describe('findOneByEmail', () => {
     it('Should find a user by email', async () => {
-      const user = await service.findOneByEmail('michael@gmail.com');
-      expect(user).toEqual({
-        ...userMock,
-        email: 'michael@gmail.com',
-      });
+      const userData = randUser();
+      const findOneSpy = jest
+        .spyOn(service, 'findOne')
+        .mockResolvedValue(userData);
+      const { email } = userData;
+
+      const user = await service.findOneByEmail(email);
+
+      expect(user).toEqual(userData);
+      expect(findOneSpy).toBeCalledWith({ email });
     });
   });
 
   describe('findOneById', () => {
     it('Should find a user by id', async () => {
-      const user = await service.findOneById('some-test-uuid');
-      expect(user).toEqual({
-        ...userMock,
-        id: 'some-test-uuid',
-      });
+      const userData = randUser();
+      const findOneSpy = jest
+        .spyOn(service, 'findOne')
+        .mockResolvedValue(userData);
+      const { id } = userData;
+
+      const user = await service.findOneById(id);
+
+      expect(user).toEqual(userData);
+      expect(findOneSpy).toBeCalledWith({ id });
     });
   });
 
   describe('create', () => {
     it('Should create a user', async () => {
-      const user = await service.create(userToCreateMock);
-      expect(user).toEqual({
-        id: expect.any(String),
-        ...userToCreateMock,
-        roles: [Role.User],
-        orders: [],
-      });
+      const userData = randUser();
+      const dataToCreate = {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+      };
+      const createSpy = jest.spyOn(repo, 'create');
+      const saveSpy = jest.spyOn(repo, 'save').mockResolvedValue(userData);
+
+      const user = await service.create(dataToCreate);
+
+      expect(user).toEqual(userData);
+      expect(createSpy).toBeCalledWith(dataToCreate);
+      expect(saveSpy).toBeCalledWith(dataToCreate);
     });
 
     it('Should create a user with specified role', async () => {
-      const user = await service.create({
-        ...userToCreateMock,
-        roles: [Role.User, Role.Admin],
-      });
-      expect(user).toEqual({
-        id: expect.any(String),
-        ...userToCreateMock,
-        roles: [Role.User, Role.Admin],
-        orders: [],
-      });
+      const userData = { ...randUser(), roles: [Role.User, Role.Admin] };
+      const dataToCreate = {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        roles: userData.roles,
+      };
+      const createSpy = jest.spyOn(repo, 'create');
+      const saveSpy = jest.spyOn(repo, 'save').mockResolvedValue(userData);
+      const user = await service.create(dataToCreate);
+
+      expect(user).toEqual(userData);
+      expect(createSpy).toBeCalledWith(dataToCreate);
+      expect(saveSpy).toBeCalledWith(dataToCreate);
     });
   });
 });

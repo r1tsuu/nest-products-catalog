@@ -6,28 +6,20 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthModule } from '../src/app/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import * as request from 'supertest';
 import { Reflector } from '@nestjs/core';
-import { User } from '../src/app/users/user.entity';
 import { Repository } from 'typeorm';
+import { randEmail, randText } from '@ngneat/falso';
 import * as bcrypt from 'bcrypt';
-import { Role } from '../src/app/users/enums/roles.enum';
-import { dbModule } from './db';
+import * as request from 'supertest';
 
-const mockUserSave = {
-  username: 'test-username',
-  email: 'testemail@asd.com',
-  password: 'hash_password',
-  roles: [Role.User],
-};
+import { AuthModule } from '@/auth/auth.module';
+import { User } from '@/models/user.entity';
+import { Role } from '@/models/role.enum';
 
-const mockUser = {
-  username: 'username',
-  email: 'test@email.com',
-  password: 'Password123',
-};
+import { dbModule } from './__utils__/db';
+import { randRegisterData } from './__utils__/auth';
+import { bootstrap } from './__utils__/bootstrap';
 
 describe('AuthModule (e2e)', () => {
   let app: INestApplication;
@@ -35,27 +27,17 @@ describe('AuthModule (e2e)', () => {
 
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot(), dbModule('auth', User), AuthModule],
+      imports: [ConfigModule.forRoot(), dbModule('auth'), AuthModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
     usersRepo = moduleRef.get(getRepositoryToken(User));
 
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-      }),
-    );
-
-    app.useGlobalInterceptors(
-      new ClassSerializerInterceptor(app.get(Reflector)),
-    );
-
-    await app.init();
+    await bootstrap(app);
   });
 
   beforeEach(async () => {
-    await usersRepo.clear();
+    await usersRepo.delete({});
   });
 
   afterAll(async () => {
@@ -66,49 +48,57 @@ describe('AuthModule (e2e)', () => {
     expect(app).toBeDefined();
   });
 
-  const saveUser = async () => {
-    const password = await bcrypt.hash(mockUser.password, 10);
-    await usersRepo.save({
-      ...mockUser,
-      password,
-
-      roles: [Role.User],
-    });
+  const saveUser = async (userData: any) => {
+    const password = await bcrypt.hash(userData.password, 10);
+    await usersRepo.save({ roles: [Role.User], ...userData, password });
   };
 
   describe('POST /auth/register', () => {
     it('Should register a user', async () => {
+      const dataToRegister = randRegisterData();
+
       const user = await request(app.getHttpServer())
         .post('/auth/register')
-        .send(mockUser)
+        .send(dataToRegister)
         .expect(201);
 
       expect(user.body).toEqual({
         id: expect.any(String),
-        email: mockUser.email,
-        username: mockUser.username,
+        email: dataToRegister.email,
+        username: dataToRegister.username,
         roles: ['user'],
+        orders: [],
       });
     });
 
     it('Should prevent duplicate emails', async () => {
-      await usersRepo.save({ ...mockUserSave, email: 'email@email.com' });
+      const email = randEmail();
+      await usersRepo.save({
+        ...randRegisterData(),
+        roles: [Role.User],
+        email,
+      });
       await request(app.getHttpServer())
         .post('/auth/register')
         .send({
-          ...mockUser,
-          email: 'email@email.com',
+          ...randRegisterData(),
+          email: email,
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
 
     it('Should prevent duplicate usernames', async () => {
-      await usersRepo.save({ ...mockUserSave, username: 'john' });
+      const username = randText();
+      await usersRepo.save({
+        ...randRegisterData(),
+        roles: [Role.User],
+        username,
+      });
       await request(app.getHttpServer())
         .post('/auth/register')
         .send({
-          ...mockUser,
-          username: 'john',
+          ...randRegisterData(),
+          username,
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -116,15 +106,20 @@ describe('AuthModule (e2e)', () => {
     it('Should validate email', async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ ...mockUser, email: 'wrongemail' })
+        .send({ ...randRegisterData(), email: 'not-email' })
         .expect(HttpStatus.BAD_REQUEST);
     });
   });
 
   describe('POST /auth/sign-in', () => {
     it('Should return object with access token', async () => {
-      await saveUser();
-      const { username, ...credentials } = mockUser;
+      const userData = randRegisterData();
+      await saveUser(userData);
+      const credentials = {
+        email: userData.email,
+        password: userData.password,
+      };
+
       const { body } = await request(app.getHttpServer())
         .post('/auth/sign-in')
         .send(credentials)
@@ -134,13 +129,15 @@ describe('AuthModule (e2e)', () => {
         access_token: expect.any(String),
       });
     });
-    it('Should return error with wrong credentials', async () => {
-      await saveUser();
-      // Password
+
+    it('Should return errors with wrong credentials', async () => {
+      const userData = randRegisterData();
+      await saveUser(userData);
+
       await request(app.getHttpServer())
         .post('/auth/sign-in')
         .send({
-          email: mockUser.email,
+          email: userData.email,
           password: 'wrong password',
         })
         .expect(HttpStatus.BAD_REQUEST)
@@ -153,7 +150,7 @@ describe('AuthModule (e2e)', () => {
         .post('/auth/sign-in')
         .send({
           email: 'wrong@email.com',
-          password: mockUser.password,
+          password: userData.password,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect((res) =>

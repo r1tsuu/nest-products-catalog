@@ -1,12 +1,14 @@
 import {
+  AfterInsert,
+  AfterLoad,
+  AfterUpdate,
   Column,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
-  Relation,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Role } from './roles.enum';
+import { Role } from './role.enum';
 import { Order } from './order.entity';
 
 @Entity()
@@ -34,5 +36,14 @@ export class User {
   roles: Role[] = [Role.User];
 
   @OneToMany(() => Order, (order) => order.user)
-  orders: Relation<Order>;
+  orders: Order[];
+
+  @AfterLoad()
+  @AfterInsert()
+  @AfterUpdate()
+  nullChecks?() {
+    if (!this.orders) {
+      this.orders = [];
+    }
+  }
 }
