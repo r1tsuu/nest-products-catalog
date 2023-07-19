@@ -242,12 +242,13 @@ describe('AuthService', () => {
         .spyOn(service, 'signToken')
         .mockResolvedValue(tokenData);
 
-      const token = await service.login({
+      const { accessToken, user } = await service.login({
         email: userData.email,
         password: passwordNotHashed,
       });
 
-      expect(token).toEqual(tokenData);
+      expect(accessToken).toEqual(tokenData);
+      expect(user).toEqual(userData);
       expect(getAuthenticatedUserSpy).toBeCalledWith(
         userData.email,
         passwordNotHashed,

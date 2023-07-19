@@ -89,6 +89,12 @@ export class AuthService {
       loginData.email,
       loginData.password,
     );
-    return this.signToken(user);
+
+    const accessToken = await this.signToken(user);
+
+    return {
+      accessToken,
+      user,
+    };
   }
 }

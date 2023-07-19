@@ -8,7 +8,6 @@ import {
 
 import { AuthService } from './auth.service';
 import { RegisterDTO } from './dto/register.dto';
-import { LoginTransformInterceptor } from './interceptors/login-transform.interceptor';
 import { LoginDTO } from './dto/login.dto';
 
 @Controller('auth')
@@ -21,7 +20,6 @@ export class AuthController {
   }
 
   @HttpCode(200)
-  @UseInterceptors(LoginTransformInterceptor)
   @Post('sign-in')
   async login(@Body() loginData: LoginDTO) {
     return this.authService.login(loginData);

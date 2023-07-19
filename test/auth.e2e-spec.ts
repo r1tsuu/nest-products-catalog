@@ -44,7 +44,7 @@ describe('AuthModule (e2e)', () => {
 
   const saveUser = async (userData: any) => {
     const password = await bcrypt.hash(userData.password, 10);
-    await usersRepo.save({ roles: [Role.User], ...userData, password });
+    return usersRepo.save({ roles: [Role.User], ...userData, password });
   };
 
   describe('POST /auth/register', () => {
@@ -106,9 +106,9 @@ describe('AuthModule (e2e)', () => {
   });
 
   describe('POST /auth/sign-in', () => {
-    it('Should return object with access token', async () => {
+    it('Should return object with access token and user', async () => {
       const userData = randRegisterData();
-      await saveUser(userData);
+      const user = await saveUser(userData);
       const credentials = {
         email: userData.email,
         password: userData.password,
@@ -119,9 +119,8 @@ describe('AuthModule (e2e)', () => {
         .send(credentials)
         .expect(200);
 
-      expect(body).toEqual({
-        access_token: expect.any(String),
-      });
+      expect(body.accessToken).toBeTruthy();
+      expect(body.user.id).toBe(user.id);
     });
 
     it('Should return errors with wrong credentials', async () => {
