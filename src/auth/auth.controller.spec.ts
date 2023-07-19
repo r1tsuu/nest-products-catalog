@@ -51,17 +51,20 @@ describe('AuthController', () => {
   describe('sign-in', () => {
     it('Should login an user ', async () => {
       const tokenData = randText({ charCount: 100 });
-      const loginSpy = jest
-        .spyOn(service, 'login')
-        .mockResolvedValue(tokenData);
+      const userData = randUser();
+      const loginSpy = jest.spyOn(service, 'login').mockResolvedValue({
+        user: userData,
+        accessToken: tokenData,
+      });
       const dataToLogin = {
         email: randEmail(),
         password: randPassword(),
       };
 
-      const token = await controller.login(dataToLogin);
+      const { user, accessToken } = await controller.login(dataToLogin);
 
-      expect(token).toEqual(tokenData);
+      expect(user).toEqual(userData);
+      expect(accessToken).toEqual(tokenData);
       expect(loginSpy).toBeCalledWith(dataToLogin);
     });
   });

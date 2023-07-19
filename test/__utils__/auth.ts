@@ -34,11 +34,12 @@ export const getAuth = async (
       password: registerData.password,
     })
     .expect(200)
-    .expect((res) =>
-      expect(res.body).toEqual({ access_token: expect.any(String) }),
-    );
+    .expect((res) => {
+      expect(res.body.user.id).toBe(entity.id);
+      expect(res.body.accessToken).toBeTruthy();
+    });
 
-  const accessToken = response.body.access_token;
+  const accessToken = response.body.accessToken;
 
   return { auth: [accessToken, { type: 'bearer' }], entity };
 };
