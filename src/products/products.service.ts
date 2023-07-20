@@ -2,9 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
-import { Product } from '@/models/product.entity';
 import { SlugGeneratorService } from '@/shared/slug-generator.service';
 
+import { Product } from './product.entity';
 import { CreateProductDTO } from './dto/create-product.dto';
 import { UpdateProductDTO } from './dto/update-product.dto';
 

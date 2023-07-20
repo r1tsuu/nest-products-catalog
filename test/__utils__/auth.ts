@@ -2,8 +2,9 @@ import { hash } from 'bcrypt';
 import * as request from 'supertest';
 import { randText } from '@ngneat/falso';
 import { randEmail } from '@ngneat/falso';
-import { Role } from '@/models/role.enum';
-import { User } from '@/models/user.entity';
+
+import { Role } from '@/users/interfaces/role.enum';
+import { User } from '@/users/user.entity';
 
 export const randRegisterData = () => ({
   username: randText(),

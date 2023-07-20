@@ -8,8 +8,8 @@ import * as bcrypt from 'bcrypt';
 import * as request from 'supertest';
 
 import { AuthModule } from '@/auth/auth.module';
-import { User } from '@/models/user.entity';
-import { Role } from '@/models/role.enum';
+import { User } from '@/users/user.entity';
+import { Role } from '@/users/interfaces/role.enum';
 
 import { dbModule } from './__utils__/db';
 import { randRegisterData } from './__utils__/auth';

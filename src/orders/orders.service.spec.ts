@@ -3,13 +3,13 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { randUuid } from '@ngneat/falso';
 
-import { Order } from '@/models/order.entity';
+import { Role } from '@/users/interfaces/role.enum';
 import { ProductsService } from '@/products/products.service';
 import { randOrder, randOrders } from '@/__test_utils__/order';
 import { randUser } from '@/__test_utils__/user';
 
 import { OrdersService } from './orders.service';
-import { Role } from '@/models/role.enum';
+import { Order } from './order.entity';
 
 describe('OrdersService', () => {
   let service: OrdersService;

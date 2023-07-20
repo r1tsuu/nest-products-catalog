@@ -15,8 +15,8 @@ import { HasRoles } from '@/auth/decorators/has-roles.decorator';
 import { RequestUser } from '@/auth/decorators/request-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/auth/guards/roles.guard';
-import { Role } from '@/models/role.enum';
-import { User } from '@/models/user.entity';
+import { Role } from '@/users/interfaces/role.enum';
+import { User } from '@/users/user.entity';
 import { DeleteTransformInterceptor } from '@/shared/interceptors/delete-transform.interceptor';
 
 import { OrdersService } from './orders.service';

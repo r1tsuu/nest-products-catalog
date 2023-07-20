@@ -1,9 +1,9 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { User } from '@/models/user.entity';
-import { Product } from '@/models/product.entity';
-import { Order } from '@/models/order.entity';
+import { User } from '@/users/user.entity';
+import { Product } from '@/products/product.entity';
+import { Order } from '@/orders/order.entity';
 
 export const dbModule = (database: string) =>
   TypeOrmModule.forRootAsync({

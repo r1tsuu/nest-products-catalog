@@ -1,6 +1,7 @@
 import { randUser } from '@/__test_utils__/user';
+import { Role } from '@/users/interfaces/role.enum';
+
 import { isAdmin } from './is-admin';
-import { Role } from '@/models/role.enum';
 
 describe('isAdmin', () => {
   it('Should return true', () => {

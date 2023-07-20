@@ -1,4 +1,4 @@
-import { Order } from '@/models/order.entity';
+import { Order } from '@/orders/order.entity';
 import { randProduct } from './products';
 import { randUser } from './user';
 import { randPastDate, randUuid } from '@ngneat/falso';

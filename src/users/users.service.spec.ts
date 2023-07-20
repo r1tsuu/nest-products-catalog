@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { User } from '@/models/user.entity';
-import { Role } from '@/models/role.enum';
 import { randUser } from '@/__test_utils__/user';
 
+import { User } from './user.entity';
+import { Role } from './interfaces/role.enum';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {

@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ColumnNumericTransformer } from './transformers/column-numeric.transformer';
+import { ColumnNumericTransformer } from '@/shared/transformers/column-numeric.transformer';
 
 @Entity()
 export class Product {
@@ -15,7 +15,7 @@ export class Product {
   @Column({
     type: 'bigint',
     nullable: false,
-    transformer: new ColumnNumericTransformer(),
+    transformer: ColumnNumericTransformer,
   })
   price: number;
 

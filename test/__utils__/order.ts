@@ -1,4 +1,4 @@
-import { Order } from '@/models/order.entity';
+import { Order } from '@/orders/order.entity';
 
 export const mapOrders = (orders: Order[]) =>
   orders.map((date) => ({

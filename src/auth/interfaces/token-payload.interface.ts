@@ -1,4 +1,4 @@
-import { Role } from '@/models/role.enum';
+import { Role } from '@/users/interfaces/role.enum';
 
 export interface TokenPayload {
   userId: string;

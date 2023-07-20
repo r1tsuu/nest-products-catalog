@@ -14,7 +14,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { HasRoles } from '@/auth/decorators/has-roles.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/auth/guards/roles.guard';
-import { Role } from '@/models/role.enum';
+import { Role } from '@/users/interfaces/role.enum';
 import { DeleteTransformInterceptor } from '@/shared/interceptors/delete-transform.interceptor';
 
 import { ProductsService } from './products.service';
