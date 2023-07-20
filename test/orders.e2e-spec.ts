@@ -6,14 +6,13 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { randUuid } from '@ngneat/falso';
 import * as request from 'supertest';
 
-import { Order } from '@/models/order.entity';
-import { Product } from '@/models/product.entity';
-import { User } from '@/models/user.entity';
-
 import { AuthModule } from '@/auth/auth.module';
+import { Product } from '@/products/product.entity';
 import { ProductsModule } from '@/products/products.module';
+import { Order } from '@/orders/order.entity';
 import { OrdersModule } from '@/orders/orders.module';
-import { Role } from '@/models/role.enum';
+import { User } from '@/users/user.entity';
+import { Role } from '@/users/interfaces/role.enum';
 
 import { dbModule } from './__utils__/db';
 import { bootstrap } from './__utils__/bootstrap';

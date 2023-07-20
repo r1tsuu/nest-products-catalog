@@ -8,7 +8,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { Role } from '@/models/role.enum';
+import { Role } from '../interfaces/role.enum';
 
 export class CreateUserDTO {
   @IsString()

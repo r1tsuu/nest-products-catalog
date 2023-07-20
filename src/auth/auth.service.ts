@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '@/users/users.service';
-import { User } from '@/models/user.entity';
+import { User } from '@/users/user.entity';
 
 import { RegisterDTO } from './dto/register.dto';
 import { LoginDTO } from './dto/login.dto';

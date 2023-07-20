@@ -2,18 +2,16 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Order } from '@/models/order.entity';
-import { User } from '@/models/user.entity';
+import { User } from '@/users/user.entity';
 import { ProductsService } from '@/products/products.service';
+import { isAdmin } from '@/shared/is-admin';
 
 import { CreateOrderDTO } from './dto/create-order.dto';
-
-import { isAdmin } from '@/shared/is-admin';
+import { Order } from './order.entity';
 
 @Injectable()
 export class OrdersService {

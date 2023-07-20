@@ -8,8 +8,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Role } from './role.enum';
-import { Order } from './order.entity';
+
+import { Order } from '@/orders/order.entity';
+
+import { Role } from './interfaces/role.enum';
 
 @Entity()
 export class User {

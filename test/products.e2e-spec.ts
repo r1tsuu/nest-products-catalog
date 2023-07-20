@@ -6,12 +6,11 @@ import { Repository } from 'typeorm';
 import { randNumber, randText, randUrl, randUuid } from '@ngneat/falso';
 import * as request from 'supertest';
 
+import { Product } from '@/products/product.entity';
 import { ProductsModule } from '@/products/products.module';
 import { AuthModule } from '@/auth/auth.module';
-
-import { User } from '@/models/user.entity';
-import { Role } from '@/models/role.enum';
-import { Product } from '@/models/product.entity';
+import { User } from '@/users/user.entity';
+import { Role } from '@/users/interfaces/role.enum';
 
 import { dbModule } from './__utils__/db';
 import { Auth, getAuth } from './__utils__/auth';

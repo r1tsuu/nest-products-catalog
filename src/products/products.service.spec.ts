@@ -4,10 +4,10 @@ import { Repository } from 'typeorm';
 import { randNumber, randText, randUuid } from '@ngneat/falso';
 import * as typeorm from 'typeorm';
 
-import { Product } from '@/models/product.entity';
 import { SlugGeneratorService } from '@/shared/slug-generator.service';
 import { randProduct, randProducts } from '@/__test_utils__/products';
 
+import { Product } from './product.entity';
 import { ProductsService } from './products.service';
 
 jest.mock('typeorm', () => {

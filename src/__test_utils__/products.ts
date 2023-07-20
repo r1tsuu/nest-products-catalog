@@ -1,4 +1,4 @@
-import { Product } from '@/models/product.entity';
+import { Product } from '@/products/product.entity';
 import { randNumber, randTextRange, randUrl, randUuid } from '@ngneat/falso';
 
 export const randProduct = (): Product => ({

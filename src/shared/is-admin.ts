@@ -1,4 +1,4 @@
-import { Role } from '@/models/role.enum';
-import { User } from '@/models/user.entity';
+import { User } from '@/users/user.entity';
+import { Role } from '@/users/interfaces/role.enum';
 
 export const isAdmin = (user: User) => user.roles.includes(Role.Admin);
