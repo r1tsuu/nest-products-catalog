@@ -4,7 +4,9 @@ import {
   AfterUpdate,
   Column,
   Entity,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
@@ -12,6 +14,7 @@ import { Exclude } from 'class-transformer';
 import { Order } from '@/orders/order.entity';
 
 import { Role } from './interfaces/role.enum';
+import { Cart } from '@/cart/cart.entity';
 
 @Entity()
 export class User {
@@ -39,6 +42,10 @@ export class User {
 
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
+
+  @OneToOne(() => Cart)
+  @JoinColumn()
+  cart: Cart;
 
   @AfterLoad()
   @AfterInsert()
